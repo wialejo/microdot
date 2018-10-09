@@ -248,6 +248,7 @@ namespace Gigya.Microdot.Hosting.HttpService
                             requestData = await ParseRequest(context);
 
                             TracingContext.SetOverrides(requestData.Overrides);
+                            TracingContext.SetExtensionData(requestData.AdditionalData);
 
                             serviceMethod = ServiceEndPointDefinition.Resolve(requestData.Target);
                             methodName = serviceMethod.ServiceInterfaceMethod.Name;

@@ -320,6 +320,8 @@ namespace Gigya.Microdot.ServiceProxy
                 SpanStartTime = DateTimeOffset.UtcNow,
                 AbandonRequestBy = TracingContext.AbandonRequestBy
             };
+            request.AdditionalData = TracingContext.TryGetAdditionalData();
+
             PrepareRequest?.Invoke(request);
             var requestContent = _serializationTime.Time(() => JsonConvert.SerializeObject(request, jsonSettings));
 

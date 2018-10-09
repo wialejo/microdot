@@ -27,8 +27,8 @@ using System.Collections.Specialized;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using Gigya.Microdot.SharedLogic.Events;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Gigya.Microdot.SharedLogic.HttpService
 {
@@ -47,6 +47,10 @@ namespace Gigya.Microdot.SharedLogic.HttpService
 
         [JsonProperty(Order = 3)]
 		public InvocationTarget Target { get; set; }
+      
+        [JsonProperty(Order = 4)]
+        [JsonExtensionData]
+        public IDictionary<string, JToken> AdditionalData { get; set; }      
 
         /// <summary>
         /// Constructor for deserialization. Should not set any property values.

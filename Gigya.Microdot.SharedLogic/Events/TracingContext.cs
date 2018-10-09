@@ -25,6 +25,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Remoting.Messaging;
 using Gigya.Microdot.SharedLogic.HttpService;
+using Newtonsoft.Json.Linq;
 
 namespace Gigya.Microdot.SharedLogic.Events
 {
@@ -37,7 +38,13 @@ namespace Gigya.Microdot.SharedLogic.Events
         private const string OVERRIDES_KEY = "Overrides";
         private const string SPAN_START_TIME = "SpanStartTime";
         private const string REQUEST_DEATH_TIME = "RequestDeathTime";
+        private const string REQUEST_AdditionalData = "RequestAdditionalData";
 
+
+        public static void SetExtensionData(IDictionary<string, JToken> extensionDat)
+        {
+            SetValue(REQUEST_AdditionalData, extensionDat);
+        }
 
         internal static void SetOverrides(RequestOverrides overrides)
         {
@@ -192,6 +199,11 @@ namespace Gigya.Microdot.SharedLogic.Events
         private static Dictionary<string, object> GetContextData()
         {
             return (Dictionary<string, object>)CallContext.LogicalGetData(ORLEANS_REQUEST_CONTEXT_KEY);
+        }
+
+        public static IDictionary<string, JToken> TryGetAdditionalData()
+        {
+            return TryGetValue<IDictionary<string, JToken>>(REQUEST_AdditionalData);
         }
     }
 }

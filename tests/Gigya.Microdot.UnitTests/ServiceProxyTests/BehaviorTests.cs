@@ -18,6 +18,7 @@ using Gigya.Microdot.SharedLogic.HttpService;
 using Gigya.Microdot.Testing;
 using Gigya.Microdot.Testing.Shared;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Ninject;
 using NUnit.Framework;
 
@@ -118,6 +119,52 @@ namespace Gigya.Microdot.UnitTests.ServiceProxyTests
 
             }
         }
+
+
+        [Test]
+        public async Task RequestContextShouldSupportAdditionalData()
+        {
+            const string serviceName = "DemoService";
+            const int defaultPort = 5555;
+            var dict = new Dictionary<string, string>
+            {
+                {$"Discovery.Services.{serviceName}.Source", "Config"},
+                {$"Discovery.Services.{serviceName}.Hosts", "host1"},
+                {$"Discovery.Services.{serviceName}.DefaultPort", defaultPort.ToString()}
+            };
+
+            using (var kernel =
+                new TestingKernel<ConsoleLog>(
+                    k => k.Rebind<IDiscoverySourceLoader>().To<DiscoverySourceLoader>().InSingletonScope(), dict))
+            {
+
+                var providerFactory = kernel.Get<Func<string, ServiceProxyProvider>>();
+                var serviceProxy = providerFactory(serviceName);
+
+
+
+                var messageHandler = new MockHttpMessageHandler();
+                messageHandler
+                    .When("*")
+                    .Respond(req => HttpResponseFactory.GetResponse(
+                        content: $"'{req.Content.ReadAsStringAsync().Result}'"));
+
+                serviceProxy.HttpMessageHandler = messageHandler;
+
+
+                TracingContext.SetExtensionData(new Dictionary<string, JToken> { { "SmcoFeature", JToken.Parse("{x:1}") } });
+
+                var request = new HttpServiceRequest("testMethod", null, new Dictionary<string, object>());
+
+                var r = (string)await serviceProxy.Invoke(request, typeof(string));
+
+                var rt = JsonConvert.DeserializeObject<HttpServiceRequest>(r);
+
+                JsonConvert.SerializeObject(rt.AdditionalData["SmcoFeature"], Formatting.None).ShouldBe("{\"x\":1}");
+            }
+        }
+
+
 
         [Test]
         public async Task RequestContextShouldOverrideHostOnly()
